@@ -105,8 +105,8 @@ export default function Landing() {
       <section ref={vantaRef} className="w-screen h-screen mt-[60px]">
         <div className="w-full h-full relative z-10 grid md:grid-cols-2 gap-12 items-center px-8">
           
-          <div>
-            <p className="text-[#bfbfbf] text-sm mb-4 tracking-wider">
+          <div className="pl-4">
+            <p className="text-[#bfbfbf] text-sm mb-4 ml-2 tracking-wider">
               SIMPLIFY YOUR SECURITY
             </p>
 
@@ -115,7 +115,7 @@ export default function Landing() {
             </h1>
 
             <p className="text-3xl font-light mb-4 text-[#cfcfcf]">
-              The first cloud-firewall, built for WPFL
+              Turning network data into security intelligence
             </p>
 
             <p className="text-gray-400 mb-8 leading-relaxed">

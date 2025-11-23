@@ -204,13 +204,26 @@ async def calculate_feature_importance(file: UploadFile = File(...)):
                             importance_dict = model.get_score(importance_type=importance_type)
                             print(f"get_score({importance_type}): {list(importance_dict.items())[:3] if importance_dict else 'empty'}")
                             if importance_dict:
+                                # Create a case-insensitive map of importance keys
+                                importance_map_lower = {k.lower(): v for k, v in importance_dict.items()}
+                                
                                 # Map f0, f1, f2... to actual feature names
+                                # OR use the feature names directly if they exist in the dict (case-insensitive)
                                 for i, fname in enumerate(feature_names):
-                                    key = f'f{i}'
-                                    if key in importance_dict:
-                                        importances[fname] = float(importance_dict[key])
+                                    f_key = f'f{i}'
+                                    fname_lower = fname.lower()
+                                    
+                                    if fname in importance_dict:
+                                        importances[fname] = float(importance_dict[fname])
+                                    elif fname_lower in importance_map_lower:
+                                        importances[fname] = float(importance_map_lower[fname_lower])
+                                    elif f_key in importance_dict:
+                                        importances[fname] = float(importance_dict[f_key])
                                     else:
                                         importances[fname] = 0.0
+                                
+                                # Debug print
+                                print(f"Mapped {len(importances)} features. Top 3: {list(importances.items())[:3]}")
                                 break
                         except Exception as e:
                             print(f"get_score({importance_type}) failed: {e}")
@@ -229,26 +242,12 @@ async def calculate_feature_importance(file: UploadFile = File(...)):
                         except:
                             pass
                 
-                # Method 3: Calculate from SHAP values as fallback
+                # Skip SHAP calculation - just use what we have or return zeros
+                # SHAP is too slow for real-time analysis
                 if not importances or all(v == 0 for v in importances.values()):
-                    print("Falling back to SHAP calculation")
-                    try:
-                        import shap
-                        # Use a small sample for SHAP
-                        sample_size = min(100, len(X))
-                        X_sample = X.sample(n=sample_size, random_state=42)
-                        
-                        explainer = shap.Explainer(model, X_sample)
-                        shap_values = explainer(X_sample)
-                        
-                        # Get mean absolute SHAP values
-                        mean_shap = np.abs(shap_values.values).mean(axis=0)
-                        importances = dict(zip(feature_names, mean_shap.tolist()))
-                        print(f"SHAP importances: {list(importances.items())[:3]}")
-                    except Exception as e:
-                        print(f"SHAP calculation failed: {e}")
-                        # Return uniform importance as last resort
-                        importances = {fname: 1.0 for fname in feature_names}
+                    print("No importances found, returning uniform values")
+                    # Return uniform importance as fallback (fast)
+                    importances = {fname: 1.0 for fname in feature_names}
                 
                 if importances:
                     return {
