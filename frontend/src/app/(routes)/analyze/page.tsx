@@ -470,6 +470,42 @@ Keep it concise (under 250 words), professional, and actionable. Use proper para
                   <h3 className="font-bold text-white">Currently Viewing: {results.filename}</h3>
                   <p className="text-sm text-gray-300">Uploaded {new Date(results.uploadedAt).toLocaleString()}</p>
                 </div>
+                {(results.filename.endsWith('.pcap') || results.filename.endsWith('.pcapng')) && (
+                  <button
+                    onClick={async () => {
+                      const file = uploadedFiles.get(results.id);
+                      if (!file) return;
+                      
+                      const formData = new FormData();
+                      formData.append('file', file);
+                      
+                      try {
+                        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}upload/convert-pcap`, {
+                          method: 'POST',
+                          body: formData,
+                        });
+                        
+                        if (response.ok) {
+                          const blob = await response.blob();
+                          const url = window.URL.createObjectURL(blob);
+                          const a = document.createElement('a');
+                          a.href = url;
+                          a.download = `${results.filename}.csv`;
+                          document.body.appendChild(a);
+                          a.click();
+                          window.URL.revokeObjectURL(url);
+                          document.body.removeChild(a);
+                        }
+                      } catch (error) {
+                        console.error('Error downloading CSV:', error);
+                      }
+                    }}
+                    className="px-4 py-2 bg-green-600 hover:bg-green-500 text-white text-sm font-medium rounded-lg transition flex items-center gap-2"
+                  >
+                    <Download className="w-4 h-4" />
+                    Download Converted CSV
+                  </button>
+                )}
               </div>
             </div>
 

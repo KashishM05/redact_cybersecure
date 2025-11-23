@@ -56,6 +56,28 @@ const Navbar = () => {
             Analyze
           </Link>
 
+          {/* <Link
+            href="/blockchain"
+            className={`transition ${
+              isActive("/blockchain")
+                ? "text-blue-400 border-b-2 border-blue-400 pb-1"
+                : "text-white hover:text-blue-400"
+            }`}
+          >
+            Blockchain
+          </Link> */}
+
+          <Link
+            href="/blockchain-demo"
+            className={`transition ${
+              isActive("/blockchain-demo")
+                ? "text-blue-400 border-b-2 border-blue-400 pb-1"
+                : "text-white hover:text-blue-400"
+            }`}
+          >
+            Blockchain
+          </Link>
+
           <Link
             href="/guide"
             className={`transition ${

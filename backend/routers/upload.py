@@ -2,10 +2,56 @@ from fastapi import APIRouter, UploadFile, File, HTTPException
 from typing import Dict
 import pandas as pd
 import io
+import os
+import tempfile
 from routers.predict import model, predict_with_model, ATTACK_MAP
+from utils.pcap_converter import convert_pcap_to_csv
 import numpy as np
 
 router = APIRouter()
+
+@router.post("/convert-pcap")
+async def convert_pcap(file: UploadFile = File(...)):
+    """
+    Convert uploaded PCAP file to CSV and return it as a download
+    """
+    try:
+        filename = file.filename.lower()
+        if not (filename.endswith('.pcap') or filename.endswith('.pcapng')):
+            raise HTTPException(status_code=400, detail="Only .pcap or .pcapng files are allowed")
+            
+        # Save PCAP to temp file
+        with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(filename)[1]) as tmp:
+            content = await file.read()
+            tmp.write(content)
+            tmp_path = tmp.name
+        
+        try:
+            # Convert to DataFrame
+            df = convert_pcap_to_csv(tmp_path)
+            
+            # Convert to CSV string
+            stream = io.StringIO()
+            df.to_csv(stream, index=False)
+            response = stream.getvalue()
+            
+            # Return as file
+            from fastapi.responses import Response
+            return Response(
+                content=response,
+                media_type="text/csv",
+                headers={"Content-Disposition": f"attachment; filename={filename}.csv"}
+            )
+            
+        finally:
+            # Cleanup temp file
+            if os.path.exists(tmp_path):
+                os.remove(tmp_path)
+                
+    except Exception as e:
+        import traceback
+        print(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Error converting file: {str(e)}")
 
 @router.post("/upload")
 async def analyze_csv(file: UploadFile = File(...)):

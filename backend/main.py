@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import predict, monitor, reports, upload
+from routers import predict, monitor, reports, upload, blockchain
 from dotenv import load_dotenv
 import os
 
@@ -28,6 +28,7 @@ app.include_router(predict.router, prefix="/predict", tags=["Prediction"])
 app.include_router(monitor.router, prefix="/monitor", tags=["Live Monitor"])
 app.include_router(reports.router, prefix="/reports", tags=["Threat Reports"])
 app.include_router(upload.router, prefix="/upload", tags=["File Upload"])
+app.include_router(blockchain.router, prefix="/blockchain", tags=["Blockchain"])
 
 
 @app.get("/")

@@ -22,9 +22,7 @@ export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState('overview');
 
   return (
-    <DashboardProvider>
-      <AnalyticsProvider>
-        <MonitorProvider>
+    
           <div className="min-h-screen bg-[#0a0e27] text-white overflow-hidden font-sans mt-[60px]">
         {/* Background Effects (copied from landing) */}
         <div className="fixed inset-0 z-0 pointer-events-none">
@@ -87,8 +85,6 @@ export default function DashboardPage() {
           </main>
         </div>
       </div>
-        </MonitorProvider>
-      </AnalyticsProvider>
-    </DashboardProvider>
+        
   );
 }

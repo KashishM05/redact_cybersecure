@@ -46,9 +46,13 @@ export function AnalyzeProvider({ children }: { children: ReactNode }) {
 
   const updateAnalysis = (id: string, updates: Partial<AnalysisResult>) => {
     setAnalyses(prev => prev.map(a => a.id === id ? { ...a, ...updates } : a));
-    if (currentAnalysis?.id === id) {
-      setCurrentAnalysisState(prev => prev ? { ...prev, ...updates } : null);
-    }
+    
+    setCurrentAnalysisState(prev => {
+      if (prev && prev.id === id) {
+        return { ...prev, ...updates };
+      }
+      return prev;
+    });
   };
 
   const removeAnalysis = (id: string) => {
