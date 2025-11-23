@@ -24,9 +24,9 @@ const Navbar = () => {
         <div className="hidden md:flex items-center space-x-8 text-sm">
 
           <Link
-            href="/landing"
+            href="/"
             className={`transition ${
-              isActive("/landing")
+              isActive("/")
                 ? "text-blue-400 border-b-2 border-blue-400 pb-1"
                 : "text-white hover:text-blue-400"
             }`}
