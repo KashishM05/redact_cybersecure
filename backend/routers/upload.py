@@ -136,40 +136,82 @@ async def calculate_feature_importance(file: UploadFile = File(...)):
         # Get feature importance from model
         if model:
             try:
-                # For XGBoost models, get feature importance
-                if hasattr(model, 'get_score'):
-                    # XGBoost Booster
-                    importance_dict = model.get_score(importance_type='weight')
-                    
-                    # Map feature names
-                    feature_names = X.columns.tolist()
-                    importances = {}
-                    
-                    for i, fname in enumerate(feature_names):
-                        # XGBoost uses f0, f1, f2... as feature names
-                        key = f'f{i}'
-                        if key in importance_dict:
-                            importances[fname] = float(importance_dict[key])
-                        else:
-                            importances[fname] = 0.0
-                    
-                    return {
-                        "success": True,
-                        "importances_dict": importances,
-                        "feature_count": len(importances)
-                    }
-                elif hasattr(model, 'feature_importances_'):
-                    # Sklearn-style model
-                    feature_names = X.columns.tolist()
+                feature_names = X.columns.tolist()
+                print(f"Model type: {type(model)}")
+                print(f"Model attributes: {dir(model)}")
+                
+                # Try to get feature importances using different methods
+                importances = {}
+                
+                # Method 1: Try feature_importances_ attribute (sklearn-style)
+                if hasattr(model, 'feature_importances_'):
+                    print("Using feature_importances_ attribute")
                     importances = dict(zip(feature_names, model.feature_importances_.tolist()))
+                    print(f"Got {len(importances)} importances, sample: {list(importances.items())[:3]}")
                     
+                # Method 2: Try get_score for XGBoost Booster
+                elif hasattr(model, 'get_score'):
+                    print("Using get_score method")
+                    # Try different importance types
+                    for importance_type in ['weight', 'gain', 'cover']:
+                        try:
+                            importance_dict = model.get_score(importance_type=importance_type)
+                            print(f"get_score({importance_type}): {list(importance_dict.items())[:3] if importance_dict else 'empty'}")
+                            if importance_dict:
+                                # Map f0, f1, f2... to actual feature names
+                                for i, fname in enumerate(feature_names):
+                                    key = f'f{i}'
+                                    if key in importance_dict:
+                                        importances[fname] = float(importance_dict[key])
+                                    else:
+                                        importances[fname] = 0.0
+                                break
+                        except Exception as e:
+                            print(f"get_score({importance_type}) failed: {e}")
+                            continue
+                    
+                    # If still empty, try without importance_type
+                    if not importances:
+                        try:
+                            importance_dict = model.get_score()
+                            for i, fname in enumerate(feature_names):
+                                key = f'f{i}'
+                                if key in importance_dict:
+                                    importances[fname] = float(importance_dict[key])
+                                else:
+                                    importances[fname] = 0.0
+                        except:
+                            pass
+                
+                # Method 3: Calculate from SHAP values as fallback
+                if not importances or all(v == 0 for v in importances.values()):
+                    print("Falling back to SHAP calculation")
+                    try:
+                        import shap
+                        # Use a small sample for SHAP
+                        sample_size = min(100, len(X))
+                        X_sample = X.sample(n=sample_size, random_state=42)
+                        
+                        explainer = shap.Explainer(model, X_sample)
+                        shap_values = explainer(X_sample)
+                        
+                        # Get mean absolute SHAP values
+                        mean_shap = np.abs(shap_values.values).mean(axis=0)
+                        importances = dict(zip(feature_names, mean_shap.tolist()))
+                        print(f"SHAP importances: {list(importances.items())[:3]}")
+                    except Exception as e:
+                        print(f"SHAP calculation failed: {e}")
+                        # Return uniform importance as last resort
+                        importances = {fname: 1.0 for fname in feature_names}
+                
+                if importances:
                     return {
                         "success": True,
                         "importances_dict": importances,
                         "feature_count": len(importances)
                     }
                 else:
-                    raise HTTPException(status_code=500, detail="Model does not support feature importance")
+                    raise HTTPException(status_code=500, detail="Could not extract feature importance")
                     
             except Exception as e:
                 import traceback

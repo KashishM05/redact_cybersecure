@@ -136,7 +136,7 @@ async def generate_pdf_report(data: ReportRequest):
         content.append(Paragraph("Executive Summary", heading_style))
         
         # Generate AI summary using Groq
-        api_key = os.getenv("GROQ_API_KEY", "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")
+        api_key = os.getenv("GROQ_API_KEY")
         client = Groq(api_key=api_key)
         
         summary_prompt = f"""Generate a professional executive summary for a network security report with these statistics:
@@ -246,7 +246,7 @@ Keep it professional and concise."""
 async def generate_text_report(data: ReportRequest):
     """Generate a text-based threat report"""
     try:
-        api_key = os.getenv("GROQ_API_KEY", "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")
+        api_key = os.getenv("GROQ_API_KEY")
         client = Groq(api_key=api_key)
         
         # Prepare statistics
