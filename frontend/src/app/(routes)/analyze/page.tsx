@@ -51,7 +51,7 @@ function AnalyzePageContent() {
     formData.append('file', file);
 
     try {
-      const response = await fetch('http://localhost:8000/upload/upload', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}upload/upload`, {
         method: 'POST',
         body: formData,
       });
@@ -94,7 +94,7 @@ function AnalyzePageContent() {
       const formData = new FormData();
       formData.append('file', fileToAnalyze);
       
-      const response = await fetch('http://localhost:8000/upload/feature-importance', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}upload/feature-importance`, {
         method: 'POST',
         body: formData,
       });
@@ -232,7 +232,7 @@ Keep it concise (under 250 words), professional, and actionable. Use proper para
           protocol_counts: currentAnalysis.protocol_counts
         };
         
-        const response = await fetch('http://localhost:8000/reports/generate-pdf', {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}reports/generate-pdf`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(reportData)

@@ -169,7 +169,7 @@ Keep it concise (under 250 words), professional, and actionable. Use proper para
           protocol_counts: { 'TCP': 1500, 'UDP': 600, 'ICMP': 130 }
         };
         
-        const response = await fetch('http://localhost:8000/reports/generate-pdf', {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}reports/generate-pdf`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(reportData)
